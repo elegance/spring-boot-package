@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>spring-boot-package</artifactId>
+        <groupId>org.orh.demo</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>thin-jar-package</artifactId>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!--显示dependency, 否在将不能正常输出至lib包 ，影响 sprnig boot 启动，不加载 yml/yaml 文件的问题-->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <!-- spring boot maven plugin
+                文档：https://docs.spring.io/spring-boot/docs/current/maven-plugin/start-mojo.html
+             -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!--控制台输出乱码问题-->
+                    <jvmArguments>-Dfile.encoding=UTF-8</jvmArguments>
+
+                    <!-- layout 需设置为ZIP，不然会出现类找不到的情况 -->
+                    <layout>ZIP</layout>
+                    <!--
+                        排除 名称为 以下 group 的jar, 达到thin jar 目的
+                        exclude：有三种书写方式，具体可以参考上面的文档连接(暂时不支持通配符)
+                        技巧：可以利用 mvn dependency:tree > dependency-tree.log生成文件，然后利用工具提取，
+                        我使用的是 vim 编辑器 很方便的就可以提取成以下效果。
+                     -->
+                    <excludeGroupIds>
+                        ch.qos.logback,
+                        com.fasterxml,
+                        com.fasterxml.jackson.core,
+                        javax.validation,
+                        org.apache.tomcat,
+                        org.apache.tomcat.embed,
+                        org.jboss.logging,
+                        org.hibernate,
+                        org.slf4j,
+                        org.springframework,
+                        org.springframework.boot,
+                        org.yaml,
+                    </excludeGroupIds>
+                </configuration>
+            </plugin>
+            <!--
+            复制 jar 依赖至 lib 目录下
+               启动方式: java -Dloader.path=lib/ -jar thin-jar-demo.jar
+               loader更多参数: https://docs.spring.io/spring-boot/docs/current/reference/html/executable-jar.html#executable-jar-property-launcher-features
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <!--compile, provided, runtime, test-->
+                            <includeScope>compile</includeScope>
+                            <outputDirectory>
+                                ${project.build.directory}/lib
+                            </outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- 将资源文件复制到 target/config 目录下 -->
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/config</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/src/main/resources</directory>
+                                    <includes>
+                                        <include>*.properties</include>
+                                        <include>*.yml</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+        <finalName>thin-jar-demo</finalName>
+    </build>
+
+</project>
