@@ -42,6 +42,12 @@
                         exclude：有三种书写方式，具体可以参考上面的文档连接(暂时不支持通配符)
                         技巧：可以利用 mvn dependency:tree > dependency-tree.log生成文件，然后利用工具提取，
                         我使用的是 vim 编辑器 很方便的就可以提取成以下效果。
+                        vim 操作记录：
+                           1. :%s#\[INFO\]\s*##g    #vim 替换[INFO] 为空
+                           2. 手动删除文件头尾
+                           3. :%s#^\W\+##g          # 删除前面的-信息
+                           4. 宏录制方式删除： f:, 开始：0;;d$  # 查找:, 回到0位置，查找到第二个:,删除至行尾
+                           5. :sort
                      -->
                     <excludeGroupIds>
                         ch.qos.logback,
